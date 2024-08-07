@@ -1,5 +1,6 @@
-import { Collection, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Collection, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { CategoriaEnum } from "../enum/categoria.enum";
+import { ItensPedido } from "../../pedido/entities/itens-pedido.entity";
 
 @Entity({name:'products'})
 export class Product {
@@ -28,4 +29,7 @@ export class Product {
     // imagens
 
     // caracteristicas
+
+    @OneToMany(()=>ItensPedido, (itemPedido)=>itemPedido.product)
+    itensPedido
 }

@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Pedido } from "../../pedido/entities/pedido.entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity({name:'users'})
 export class User {
@@ -14,4 +15,6 @@ export class User {
     @Column({name:'senha', type:'varchar', nullable:false})
     senha:string
     // pedidos
+    @OneToMany(()=>Pedido, (pedido)=>pedido.user)
+    pedidos
 }

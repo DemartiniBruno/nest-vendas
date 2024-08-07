@@ -1,3 +1,5 @@
+import { ItensPedido } from 'src/pedido/entities/itens-pedido.entity';
+import { Pedido } from 'src/pedido/entities/pedido.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
 import { DataSource } from 'typeorm';
@@ -14,7 +16,7 @@ export const databaseProviders = [
                 password: process.env.DB_PASSWORD,
                 database: process.env.DB_NAME,
                 entities: [
-                    User, Product
+                    User, Product, Pedido, ItensPedido
                 ],
             });
 
