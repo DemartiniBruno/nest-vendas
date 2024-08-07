@@ -3,13 +3,18 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
-@Controller('product')
+@Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
+  async create(@Body() createProductDto: CreateProductDto) {
+    // return this.productService.create(createProductDto);
+    const product = await this.productService.create(createProductDto)
+    return {
+      message: 'Produto criado com sucesso',
+      produto: product
+    }
   }
 
   @Get()

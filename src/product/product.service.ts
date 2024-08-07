@@ -11,9 +11,9 @@ export class ProductService {
     private readonly productRepository: Repository<Product>
   ){}
   
-  create(createProductDto: CreateProductDto) {
-    // const createdProduct 
-    return 'This action adds a new product';
+  async create(createProductDto: CreateProductDto) {
+    const createdProduct = await this.productRepository.save(createProductDto)
+    return createdProduct;
   }
 
   findAll() {
