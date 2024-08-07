@@ -31,12 +31,12 @@ export class UserService {
 
   async findOne(id: string) {
     const findedUser: User = await this.userRepository.findOneBy({id});
+    this.verifyUser(findedUser)
     return findedUser;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     const user:User = await this.findOne(id);
-    this.verifyUser(user);
 
     user.nome=updateUserDto.nome;
     user.email=updateUserDto.email;
@@ -46,11 +46,16 @@ export class UserService {
     return await this.findOne(id);
   }
 
-  async remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    const user:User = await this.findOne(id)
+
+    return {
+      idUser: id,
+      deletedUser: await this.userRepository.remove(user)
+    }
   }
   
-  verifyUser(user:User){
+  private verifyUser(user:User){
     if(user===null){
       throw new NotFoundException('Usuário não encontrado')
     }

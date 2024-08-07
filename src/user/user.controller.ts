@@ -27,7 +27,6 @@ export class UserController {
   @Get(':client_id')
   async findOne(@Param('client_id') id: string) {
     const user = await this.userService.findOne(id);
-    this.userService.verifyUser(user);
 
     return {
       usuario: new findUserDto(user.id, user.nome)
@@ -47,7 +46,11 @@ export class UserController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  async remove(@Param('id') id: string) {
+    const deletedUser = await this.userService.remove(id);
+    return {
+      message: 'Usuário deletado',
+      usuario: deletedUser
+    }
   }
 }
