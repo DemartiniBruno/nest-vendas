@@ -35,8 +35,15 @@ export class UserController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    const updatedUser = await this.userService.update(id, updateUserDto);
+    return {
+      message: `Usuário ${id} alterado com sucesso`,
+      /* 
+        Esse retorno vai trazer todas as informações, por enquanto
+      */
+      usuario: updatedUser
+    }
   }
 
   @Delete(':id')

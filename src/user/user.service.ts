@@ -34,15 +34,23 @@ export class UserService {
     return findedUser;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user:User = await this.findOne(id);
+    this.verifyUser(user);
+
+    user.nome=updateUserDto.nome;
+    user.email=updateUserDto.email;
+    user.senha=updateUserDto.senha;
+
+    await this.userRepository.save(user);
+    return await this.findOne(id);
   }
 
   async remove(id: number) {
     return `This action removes a #${id} user`;
   }
   
-  verifyUser(user: User){
+  verifyUser(user:User){
     if(user===null){
       throw new NotFoundException('Usuário não encontrado')
     }
