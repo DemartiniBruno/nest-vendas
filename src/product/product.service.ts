@@ -42,8 +42,14 @@ export class ProductService {
     return await this.findOne(id);
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} product`;
+  async remove(id: string) {
+    const product = await this.findOne(id)
+    
+    return{
+      idProduct: id,
+      deletedProdut: await this.productRepository.remove(product)
+    }
+    
   }
 
   private verifyProduct(Product: Product){
