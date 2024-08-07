@@ -10,5 +10,8 @@ export class User {
 
     @Column({name:'email', type:'varchar', length:50})
     email:string;
+
+    @Column({name:'senha', type:'varchar', nullable:false})
+    senha:string
     // pedidos
 }
