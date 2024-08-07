@@ -27,8 +27,19 @@ export class ProductService {
     return findedProduct;
   }
 
-  update(id: string, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    const product = await this.findOne(id);
+
+    product.nome=updateProductDto.nome
+    product.gtin=updateProductDto.gtin
+    product.valor=updateProductDto.valor
+    product.quantidadeDisponivel=updateProductDto.quantidadeDisponivel
+    product.descricao=updateProductDto.descricao
+    product.categoria=updateProductDto.categoria
+
+    await this.productRepository.save(product);
+    
+    return await this.findOne(id);
   }
 
   remove(id: string) {

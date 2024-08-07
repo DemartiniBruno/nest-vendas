@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPositive } from "class-validator"
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPositive, MaxLength, MinLength, minLength } from "class-validator"
 import { CategoriaEnum } from "../enum/categoria.enum"
 
 export class CreateProductDto {
@@ -6,7 +6,8 @@ export class CreateProductDto {
     @IsNotEmpty()
     nome:string
 
-    @IsNotEmpty()
+    @MinLength(7)
+    @MaxLength(13)
     gtin:string
 
     @IsNumber()
