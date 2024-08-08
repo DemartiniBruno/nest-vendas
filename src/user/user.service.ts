@@ -55,7 +55,7 @@ export class UserService {
     }
   }
   
-  private verifyUser(user:User){
+  verifyUser(user:User){
     if(user===null){
       throw new NotFoundException('Usuário não encontrado')
     }

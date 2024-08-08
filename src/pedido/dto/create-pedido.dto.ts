@@ -1,11 +1,14 @@
-import { IsEnum, IsNumber } from "class-validator";
+import { IsEnum, IsNumber, IsUUID } from "class-validator";
 import { StatusEnum } from "../enum/status.enum";
 
 export class CreatePedidoDto {
 
-    @IsNumber()
-    valorTotal:number;
+    @IsUUID()
+    productId:string;
 
-    @IsEnum(StatusEnum)
-    status:string;
+    @IsNumber()
+    quantidade:number;
+
+    @IsNumber()
+    precoVenda:number
 }

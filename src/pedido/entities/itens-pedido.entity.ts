@@ -11,13 +11,18 @@ export class ItensPedido {
     quantidade:number;
 
     @Column({name:'preco-venda', type:'numeric'})
-    precoVenda:string;
+    precoVenda:number;
 
     // pedidoFK
-    @ManyToOne(()=>Pedido,(pedido)=>pedido.itensPedido)
+    @ManyToOne(()=>Pedido,(pedido)=>pedido.itensPedido,{
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+    })
     pedido
 
-    @ManyToOne(()=>Product,(product)=>product.itensPedido)
-    product
     // produtoFK
+    @ManyToOne(()=>Product,(product)=>product.itensPedido,{
+        cascade: ['update']
+    })
+    product
 }
