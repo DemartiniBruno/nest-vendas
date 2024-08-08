@@ -45,7 +45,7 @@ export class PedidoService {
   }
 
 
-  private async criaItemPedido(listaItens:CreatePedidoDto){
+  private async criaItemPedido(listaItens){
     let itens:ItensPedido[] = []
 
     for (const item of listaItens.itensPedido){
@@ -101,11 +101,21 @@ export class PedidoService {
 
 
   async update(id: string, updatePedidoDto: UpdatePedidoDto) {
-    const pedido = this.findOne(id)
+    /* 
+      Por enquanto vou fazer a alteração apenas do status
+    */
+    const pedido = await this.findOne(id)
+
+    pedido.status = updatePedidoDto.status
+    await this.pedidoRepository.save(pedido)
+
+    return await this.findOne(id)
 
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} pedido`;
+  async remove(id: string) {
+    const pedido = await this.findOne(id)
+
+    return await this.pedidoRepository.remove(pedido)
   }
 }
