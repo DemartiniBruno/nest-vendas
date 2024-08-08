@@ -16,13 +16,13 @@ export class ItensPedido {
     // pedidoFK
     @ManyToOne(()=>Pedido,(pedido)=>pedido.itensPedido,{
         onDelete: 'CASCADE',
-        onUpdate: 'CASCADE'
     })
     pedido
 
     // produtoFK
     @ManyToOne(()=>Product,(product)=>product.itensPedido,{
-        cascade: ['update']
+        cascade: ['update'],
+        eager:true
     })
     product
 }

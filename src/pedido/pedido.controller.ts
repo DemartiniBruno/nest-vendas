@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, BadRequestException } from '@nestjs/common';
 import { PedidoService } from './pedido.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
@@ -9,12 +9,11 @@ export class PedidoController {
   constructor(private readonly pedidoService: PedidoService) { }
 
   @Post()
-  async create(
-    @Query('userId') userId: string,
-    @Body() listaProdutos: CreatePedidoDto) {
-
+  async create(@Query('userId') userId: string, @Body() listaProdutos: CreatePedidoDto) {
+    if(userId===undefined){
+      throw new BadRequestException('Não repassado parametro userId')
+    }
     return await this.pedidoService.create(userId, listaProdutos)
-
   }
 
   @Get()

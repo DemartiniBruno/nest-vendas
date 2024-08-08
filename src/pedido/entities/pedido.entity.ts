@@ -20,7 +20,8 @@ export class Pedido {
 
     // itens pedidos
     @OneToMany(()=>ItensPedido,(itemPedido)=>itemPedido.pedido,{
-        cascade:true
+        cascade:true,
+        eager:true
     })
     itensPedido
 }

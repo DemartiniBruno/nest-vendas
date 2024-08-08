@@ -45,7 +45,7 @@ export class PedidoService {
   }
 
 
-  private async criaItemPedido(listaItens){
+  private async criaItemPedido(listaItens: CreatePedidoDto){
     let itens:ItensPedido[] = []
 
     for (const item of listaItens.itensPedido){
@@ -86,11 +86,12 @@ export class PedidoService {
 
   async findOne(id: string) {
     const pedido = await this.pedidoRepository.findOne({
+      relations:{
+        itensPedido:true,
+
+      },
       where: {
         id: id
-      },
-      relations: {
-        itensPedido: true
       }
     })
 
@@ -100,20 +101,45 @@ export class PedidoService {
   }
 
 
+  // private async baixandoQuantidade(pedido: Pedido){
+    
+  //   for(const item of pedido.itensPedido){
+  //     const produto = await this.productService.findOne(item.ItensPedido.id)
+  //     console.log(produto)
+  //   }
+
+  // }
+
   async update(id: string, updatePedidoDto: UpdatePedidoDto) {
-    /* 
+    /*
       Por enquanto vou fazer a alteração apenas do status
     */
-    const pedido = await this.findOne(id)
+    const pedido = await this.pedidoRepository.findOne({
+      loadEagerRelations:true,
+      relations:{
+        itensPedido:true
+      },
+      where:{id:id}
+    })
+    console.log(pedido)
 
-    pedido.status = updatePedidoDto.status
-    await this.pedidoRepository.save(pedido)
+    // pedido.status = updatePedidoDto.status
+    // if(pedido.status===StatusEnum.COMPLETED){
+    //   // this.baixandoQuantidade(pedido)
+    //   for (const item of pedido.itensPedido){
+    //     // const produto = await this.productService.findOne(item.id)
+    //     // console.log(produto)
+    //   }
+    // }
 
-    return await this.findOne(id)
+    // await this.pedidoRepository.save(pedido)
+
+    // return await this.findOne(id)
 
   }
 
   async remove(id: string) {
+
     const pedido = await this.findOne(id)
 
     return await this.pedidoRepository.remove(pedido)
