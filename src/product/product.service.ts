@@ -24,6 +24,7 @@ export class ProductService {
   async findOne(id: string) {
     const findedProduct: Product = await this.productRepository.findOneBy({id})
     this.verifyProduct(findedProduct)
+    // console.log(findedProduct)
     return findedProduct;
   }
 

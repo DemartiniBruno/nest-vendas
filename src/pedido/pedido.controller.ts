@@ -9,13 +9,17 @@ export class PedidoController {
   constructor(private readonly pedidoService: PedidoService) {}
 
   @Post(':id')
-  async create(@Param('id') id:string, @Body() listaProdutos:CreatePedidoDto[]) {
+  async create(@Param('id') id:string, @Body() listaProdutos:CreatePedidoDto) {
+
+    // const itens_ids = this.pedidoService.pegarIds(listaProdutos)
+
+    return await this.pedidoService.create(id, listaProdutos)
   
-    await this.pedidoService.create(id, listaProdutos)
-    return {
-      id,
-      listaProdutos
-    }
+    // await this.pedidoService.create(id, listaProdutos)
+    // return {
+    //   id,
+    //   listaProdutos
+    // }
   }
 
   @Get()
@@ -30,11 +34,11 @@ export class PedidoController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updatePedidoDto: UpdatePedidoDto) {
-    return this.pedidoService.update(+id, updatePedidoDto);
+    return this.pedidoService.update(id, updatePedidoDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.pedidoService.remove(+id);
+    return this.pedidoService.remove(id);
   }
 }

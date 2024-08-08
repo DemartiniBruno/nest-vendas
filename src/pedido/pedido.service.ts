@@ -1,12 +1,13 @@
-import { Inject, Injectable, NotAcceptableException } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Inject, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { UserService } from 'src/user/user.service';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { StatusEnum } from './enum/status.enum';
 import { ItensPedido } from './entities/itens-pedido.entity';
-import { NotFoundError } from 'rxjs';
+import { ProductService } from 'src/product/product.service';
+import { Product } from 'src/product/entities/product.entity';
 
 @Injectable()
 export class PedidoService {
@@ -17,47 +18,60 @@ export class PedidoService {
     @Inject('ITEM_PEDIDO_REPOSITORY')
     private readonly itemPedidoRepository: Repository<ItensPedido>,
 
-    private readonly userService: UserService
+    private readonly userService: UserService,
+
+    @Inject('PRODUCT_REPOSITORY')
+    private readonly productRepository: Repository<Product>,
+
+    private readonly productService: ProductService
   ) { }
 
-  private somaTotal(listaProdutos: CreatePedidoDto[]) {
-    let valor_total: number = 0
-
-    listaProdutos.forEach((item) => {
-      valor_total += Number(item.quantidade) * Number(item.precoVenda)
-      // console.log(valor_total)
-    })
-
-    return valor_total
+  private somaTotal(itens: ItensPedido[]){
+    return itens.reduce(
+      (total, itemPedido)=>total+(itemPedido.precoVenda*itemPedido.quantidade),0
+    )
   }
 
   private verifyPedido(pedido) {
-    if(pedido===null){
-      throw new NotAcceptableException('Pedido não encontrado');
+    if (pedido === null) {
+      throw new NotFoundException('Pedido não encontrado')
     }
   }
 
-  async create(userId, createPedidoDto: CreatePedidoDto[]) {
-    this.userService.verifyUser(userId)
-
-    const createdPedido = await this.pedidoRepository.save({
-      user: userId,
-      status: StatusEnum.PROCESSING,
-      valorTotal: this.somaTotal(createPedidoDto)
-    })
-
-
-    createPedidoDto.forEach((item) => {
-
-      const createdItemPedido = this.itemPedidoRepository.save({
-        pedido: createdPedido.id,
-        product: item.productId,
-        precoVenda: item.precoVenda,
-        quantidade: item.quantidade
-      })
-
-    })
+  private verifyQuantidade(quantidade, quantidadeDisponivel) {
+    if (quantidade > quantidadeDisponivel) {
+      throw new BadRequestException(`Quantidade: ${quantidade} maior do que a disponível: ${quantidadeDisponivel}`)
+    }
   }
+
+  //------------------------------------------------------
+  async create(userId, listaItens: CreatePedidoDto, ) { //Verificar o tipo desse listaItens para passar o itensPedido direto do construtor
+    const user = await this.userService.findOne(userId)
+
+    let itens:ItensPedido[] = []
+
+    for (const item of listaItens.itensPedido){
+      const produto = await this.productService.findOne(item.productId)
+
+      this.verifyQuantidade(item.quantidade, produto.quantidadeDisponivel)
+
+      const itemPedido = new ItensPedido
+      itemPedido.product = item.productId
+      itemPedido.precoVenda = produto.valor
+      itemPedido.quantidade=item.quantidade
+    
+      itens.push(itemPedido)
+    }
+    
+    const pedido = new Pedido
+    pedido.user = user
+    pedido.status = StatusEnum.PROCESSING
+    pedido.valorTotal = this.somaTotal(itens)
+    pedido.itensPedido = itens
+    
+    return this.pedidoRepository.save(pedido);
+  }
+  //------------------------------------------------------
 
   async findAll() {
     return this.pedidoRepository.find({});
@@ -79,11 +93,11 @@ export class PedidoService {
   }
 
 
-  update(id: number, updatePedidoDto: UpdatePedidoDto) {
-    return `This action updates a #${id} pedido`;
+  async update(id: string, updatePedidoDto: UpdatePedidoDto) {
+    
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} pedido`;
   }
 }
