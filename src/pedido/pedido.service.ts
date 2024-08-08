@@ -26,9 +26,9 @@ export class PedidoService {
     private readonly productService: ProductService
   ) { }
 
-  private somaTotal(itens: ItensPedido[]){
+  private somaTotal(itens: ItensPedido[]) {
     return itens.reduce(
-      (total, itemPedido)=>total+(itemPedido.precoVenda*itemPedido.quantidade),0
+      (total, itemPedido) => total + (itemPedido.precoVenda * itemPedido.quantidade), 0
     )
   }
 
@@ -45,10 +45,10 @@ export class PedidoService {
   }
 
 
-  private async criaItemPedido(listaItens: CreatePedidoDto){
-    let itens:ItensPedido[] = []
+  private async criaItemPedido(listaItens: CreatePedidoDto) {
+    let itens: ItensPedido[] = []
 
-    for (const item of listaItens.itensPedido){
+    for (const item of listaItens.itensPedido) {
       const produto = await this.productService.findOne(item.productId)
 
       this.verifyQuantidade(item.quantidade, produto.quantidadeDisponivel)
@@ -56,8 +56,8 @@ export class PedidoService {
       const itemPedido = new ItensPedido
       itemPedido.product = item.productId
       itemPedido.precoVenda = produto.valor
-      itemPedido.quantidade=item.quantidade
-    
+      itemPedido.quantidade = item.quantidade
+
       itens.push(itemPedido)
     }
 
@@ -65,17 +65,17 @@ export class PedidoService {
   }
 
   //------------------------------------------------------
-  async create(userId, listaItens: CreatePedidoDto, ) { //Verificar o tipo desse listaItens para passar o itensPedido direto do construtor
+  async create(userId, listaItens: CreatePedidoDto,) { //Verificar o tipo desse listaItens para passar o itensPedido direto do construtor
     const user = await this.userService.findOne(userId)
 
     const itens = await this.criaItemPedido(listaItens)
-    
+
     const pedido = new Pedido
     pedido.user = user
     pedido.status = StatusEnum.PROCESSING
     pedido.valorTotal = this.somaTotal(itens)
     pedido.itensPedido = itens
-    
+
     return this.pedidoRepository.save(pedido);
   }
   //------------------------------------------------------
@@ -86,8 +86,8 @@ export class PedidoService {
 
   async findOne(id: string) {
     const pedido = await this.pedidoRepository.findOne({
-      relations:{
-        itensPedido:true,
+      relations: {
+        itensPedido: true,
 
       },
       where: {
@@ -101,47 +101,66 @@ export class PedidoService {
   }
 
 
-  // private async baixandoQuantidade(pedido: Pedido){
-    
-  //   for(const item of pedido.itensPedido){
-  //     const produto = await this.productService.findOne(item.ItensPedido.id)
-  //     console.log(produto)
-  //   }
+  private async baixandoQuantidade(pedido: Pedido) {
+    console.log('baixando quantidade')
+    for (const item of pedido.itensPedido) {
+      const produto = await this.productService.findOne(item.product.id)
+      produto.quantidadeDisponivel -= item.quantidade
+      await this.productRepository.save(produto)
+    }
 
-  // }
+  }
+
+  private async voltaQuantidade(pedido: Pedido) {
+    console.log('voltando quantidade')
+    for(const item of pedido.itensPedido){
+      const produto = await this.productService.findOne(item.product.id)
+      produto.quantidadeDisponivel = Number(produto.quantidadeDisponivel)+Number(item.quantidade)
+      await this.productRepository.save(produto)
+    }
+
+  }
 
   async update(id: string, updatePedidoDto: UpdatePedidoDto) {
     /*
       Por enquanto vou fazer a alteração apenas do status
     */
-    const pedido = await this.pedidoRepository.findOne({
-      loadEagerRelations:true,
-      relations:{
-        itensPedido:true
-      },
-      where:{id:id}
-    })
-    console.log(pedido)
+    const pedido = await this.findOne(id)
 
-    // pedido.status = updatePedidoDto.status
-    // if(pedido.status===StatusEnum.COMPLETED){
-    //   // this.baixandoQuantidade(pedido)
-    //   for (const item of pedido.itensPedido){
-    //     // const produto = await this.productService.findOne(item.id)
-    //     // console.log(produto)
-    //   }
-    // }
+    switch (updatePedidoDto.status) {
+      case StatusEnum.COMPLETED:
+        if (pedido.status === StatusEnum.PROCESSING) {
+          pedido.status = StatusEnum.COMPLETED
+          this.baixandoQuantidade(pedido);
+        }
+        break
+      case StatusEnum.CANCELED:
+        switch (pedido.status) {
+          case StatusEnum.COMPLETED:
+            pedido.status = StatusEnum.CANCELED
+            this.voltaQuantidade(pedido)
+            break
+          case StatusEnum.PROCESSING:
+            pedido.status = StatusEnum.CANCELED
+            break
+        }
+        break
+      case StatusEnum.PROCESSING:
+        pedido.status = StatusEnum.PROCESSING
+        break
+    }
 
-    // await this.pedidoRepository.save(pedido)
+    await this.pedidoRepository.save(pedido)
 
-    // return await this.findOne(id)
+    return await this.findOne(id)
 
   }
 
   async remove(id: string) {
-
+    /* 
+      Remover se estiver cancelado?
+    */
     const pedido = await this.findOne(id)
-
     return await this.pedidoRepository.remove(pedido)
   }
 }
