@@ -25,7 +25,7 @@ export class PedidoController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.pedidoService.findOne(+id);
+    return this.pedidoService.findOne(id);
   }
 
   @Patch(':id')

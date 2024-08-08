@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotAcceptableException } from '@nestjs/common';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { UserService } from 'src/user/user.service';
@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { StatusEnum } from './enum/status.enum';
 import { ItensPedido } from './entities/itens-pedido.entity';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class PedidoService {
@@ -30,16 +31,14 @@ export class PedidoService {
     return valor_total
   }
 
+  private verifyPedido(pedido) {
+    if(pedido===null){
+      throw new NotAcceptableException('Pedido não encontrado');
+    }
+  }
+
   async create(userId, createPedidoDto: CreatePedidoDto[]) {
     this.userService.verifyUser(userId)
-
-    // const createPedido = new Pedido
-
-    // createPedido.status = StatusEnum.PROCESSING
-    // createPedido.valorTotal = this.somaTotal(createPedidoDto)
-    // createPedido.user = userId
-
-    // this.pedidoRepository.save(createPedido)
 
     const createdPedido = await this.pedidoRepository.save({
       user: userId,
@@ -49,12 +48,6 @@ export class PedidoService {
 
 
     createPedidoDto.forEach((item) => {
-      // const itemPedido = new ItensPedido
-
-      // itemPedido.pedido = createdPedido.id
-      // itemPedido.product = item.productId
-      // itemPedido.precoVenda = item.precoVenda
-      // itemPedido.quantidade = item.quantidade
 
       const createdItemPedido = this.itemPedidoRepository.save({
         pedido: createdPedido.id,
@@ -63,23 +56,28 @@ export class PedidoService {
         quantidade: item.quantidade
       })
 
-      // console.log(itemPedido)
-      // this.itemPedidoRepository.save(itemPedido)
-      // this.pedidoRepository.save(itemPedido)
     })
   }
 
-  findAll() {
-    return this.pedidoRepository.find({
-      relations:{
-        itensPedido:true
-      }
-    });
+  async findAll() {
+    return this.pedidoRepository.find({});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} pedido`;
+  async findOne(id: string) {
+    const pedido = await this.pedidoRepository.findOne({
+      where: {
+        id: id
+      },
+      relations: {
+        itensPedido: true
+      }
+    })
+
+    this.verifyPedido(pedido);
+
+    return pedido;
   }
+
 
   update(id: number, updatePedidoDto: UpdatePedidoDto) {
     return `This action updates a #${id} pedido`;
