@@ -44,10 +44,8 @@ export class PedidoService {
     }
   }
 
-  //------------------------------------------------------
-  async create(userId, listaItens: CreatePedidoDto, ) { //Verificar o tipo desse listaItens para passar o itensPedido direto do construtor
-    const user = await this.userService.findOne(userId)
 
+  private async criaItemPedido(listaItens:CreatePedidoDto){
     let itens:ItensPedido[] = []
 
     for (const item of listaItens.itensPedido){
@@ -62,6 +60,15 @@ export class PedidoService {
     
       itens.push(itemPedido)
     }
+
+    return itens
+  }
+
+  //------------------------------------------------------
+  async create(userId, listaItens: CreatePedidoDto, ) { //Verificar o tipo desse listaItens para passar o itensPedido direto do construtor
+    const user = await this.userService.findOne(userId)
+
+    const itens = await this.criaItemPedido(listaItens)
     
     const pedido = new Pedido
     pedido.user = user
@@ -94,7 +101,8 @@ export class PedidoService {
 
 
   async update(id: string, updatePedidoDto: UpdatePedidoDto) {
-    
+    const pedido = this.findOne(id)
+
   }
 
   remove(id: string) {
